@@ -1,5 +1,7 @@
     static function OnBeforeRequest(oSession: Session) {
 
+        oSession.oRequest['x-pid'] = oSession.LocalProcess;
+
         // simple http file server
         if (oSession.HostnameIs(System.Environment.MachineName) || oSession.HostnameIs('localhost') || oSession.HostnameIs('f.cn')) {
             try {
@@ -18,17 +20,51 @@
     
                 } else if (System.IO.Directory.Exists(path)) {
                     if (oSession.RequestMethod == 'POST') {
+                        var binaryMatch = function(s, p, i) {
+                                var sLen = s.Length;
+                                var pLen = p.Length;
+                                var i = i || 0;
+                                var j = 0;
+                                while (i < sLen && j < pLen)
+                                {  
+                                    if (s[i] == p[j])
+                                    {  
+                                        i++;  
+                                        j++;  
+                                    }  
+                                    else  
+                                    {  
+                                        i -= j - 1;  
+                                        j = 0;  
+                                    }  
+                                }  
+                                return j == pLen ? i - j : -1;
+                            };
+                            
                         var type = oSession.oRequest['Content-Type'];
-                        var m = type && type.match(/boundary=(.*)\$/);
+                        var m = type && type.match(/boundary=(.*)$/);
                         var boundary = m && m[1];
                         if (boundary) {
-                            boundary = '--' + boundary;
+                            boundary = '\r\n--' + boundary;
                             oSession.utilDecodeRequest();
                             var body = oSession.RequestBody;
-                            
+                            var index = 0;
+                            while (index >= 0) {
+                                var headEnd = binaryMatch(body, '\r\n\r\n', index);
+                                if (headEnd < 0) break; else headEnd += 4;
+                                var head = System.Text.Encoding.UTF8.GetString(body, index, headEnd - index);
+                                var fileName = System.IO.Path.Combine(path, head.match(/filename="(.*?)"/)[1]);
+                                var name = System.IO.Path.GetFileNameWithoutExtension(fileName);
+                                var ext = System.IO.Path.GetExtension(fileName);
+                                for (var i = 1; System.IO.File.Exists(fileName); ++i) {
+                                    fileName = System.IO.Path.Combine(path, name + ' (' + i + ')' + ext);
+                                }
+                                index = binaryMatch(body, boundary, headEnd);
+                                var fileStream = new System.IO.FileStream(fileName, System.IO.FileMode.CreateNew);
+                                fileStream.Write(body, headEnd, index - headEnd);
+                                fileStream.Close();
+                            }
                         }
-                        
-                        oSession.oRequest['x-hello'] = boundary;
                     }
                     
                     var body = '<html><body><style>*{font-family:monospace;font-size:16px}p a{margin:0}</style><p>';
@@ -86,5 +122,7 @@
             } catch (e) {
                 oSession.oRequest['x-error'] = e;
                 oSession['ui-backcolor'] = 'gold';
+                oSession.utilCreateResponseAndBypassServer();
+                oSession.utilSetResponseBody(e);
             }
         }
