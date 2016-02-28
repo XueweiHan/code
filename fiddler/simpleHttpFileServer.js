@@ -50,6 +50,7 @@
                                 if (headEnd < 0) break; else headEnd += 4;
                                 var head = System.Text.Encoding.UTF8.GetString(body, index, headEnd - index);
                                 var fileName = System.IO.Path.Combine(path, head.match(/filename="(.*?)"/)[1]);
+                                if (fileName === path) break;
                                 var name = System.IO.Path.GetFileNameWithoutExtension(fileName);
                                 var ext = System.IO.Path.GetExtension(fileName);
                                 for (var i = 1; System.IO.File.Exists(fileName); ++i) {
