@@ -25,19 +25,15 @@
                                 var pLen = p.Length;
                                 var i = i || 0;
                                 var j = 0;
-                                while (i < sLen && j < pLen)
-                                {  
-                                    if (s[i] == p[j])
-                                    {  
-                                        i++;  
-                                        j++;  
-                                    }  
-                                    else  
-                                    {  
-                                        i -= j - 1;  
-                                        j = 0;  
-                                    }  
-                                }  
+                                while (i < sLen && j < pLen) {
+                                    if (s[i] == p[j]) {
+                                        i++;
+                                        j++;
+                                    } else {
+                                        i -= j - 1;
+                                        j = 0;
+                                    }
+                                }
                                 return j == pLen ? i - j : -1;
                             };
                             
