@@ -19,14 +19,14 @@
                     contentType = { 'cmd': 'text/plain' }[fileExt];
     
                 } else if (System.IO.Directory.Exists(path)) {
-                    if (oSession.RequestMethod == 'POST') {
+                    if (oSession.RequestMethod === 'POST') {
                         var binaryMatch = function(s, p, i) {
                                 var sLen = s.Length;
                                 var pLen = p.Length;
                                 var i = i || 0;
                                 var j = 0;
                                 while (i < sLen && j < pLen) {
-                                    if (s[i] == p[j]) {
+                                    if (s[i] === p[j]) {
                                         i++;
                                         j++;
                                     } else {
@@ -34,7 +34,7 @@
                                         j = 0;
                                     }
                                 }
-                                return j == pLen ? i - j : -1;
+                                return j === pLen ? i - j : -1;
                             };
                             
                         var type = oSession.oRequest['Content-Type'];
@@ -61,43 +61,47 @@
                                 fileStream.Close();
                             }
                         }
-                    }
-                    
-                    var body = '<html><body><style>*{font-family:monospace;font-size:16px}p a{margin:0}</style><p>';
-                    var pathEndWithSlash = path.EndsWith('/');
-                    var dirs = path.split('/');
-                    path = '';
-                    for (var i in dirs) {
-                        var dir = dirs[i];
-                        if (dir) {
-                            path += dir + '/';
-                            body += '<a href="/' + path + '">' + dir + '\\</a>';
+
+                        oSession.utilCreateResponseAndBypassServer();
+                        oSession.responseCode = 303;
+                        oSession.oResponse['Location'] = oSession.fullUrl;
+                    } else {
+                        var body = '<html><body><style>*{font-family:monospace;font-size:16px}p a{margin:0}</style><p>';
+                        var pathEndWithSlash = path.EndsWith('/');
+                        var dirs = path.split('/');
+                        path = '';
+                        for (var i in dirs) {
+                            var dir = dirs[i];
+                            if (dir) {
+                                path += dir + '/';
+                                body += '<a href="/' + path + '">' + dir + '\\</a>';
+                            }
                         }
-                    }
-                    body += '</p><form method="post" enctype="multipart/form-data"><input type="file" name="files" multiple /><button>Upload</button></form><table>';
-                    dirs = System.IO.Directory.GetDirectories(path);
-                    for (var i in dirs) {
-                        var dir = dirs[i];
-                        var lastPath = dir.split('/').pop();
-                        body += '<tr><td>&#x1f4c2;</td><td><a href="' + (pathEndWithSlash ? lastPath : '/' + dir) + '/">' + lastPath + '</a></td></tr>';
-                    }
-                    var files = System.IO.Directory.GetFiles(path);
-                    for (var i in files) {
-                        var file = files[i];
-                        var fileName = file.split('/').pop();
-                        var ext = fileName.split('.').pop();
-                        var icon = { 'jpg':'&#128247;', 'png':'&#128247;', 'gif':'&#128247;', 'mp4':'&#127909;', 'mkv':'&#127909;',
-                                     'mp3':'&#127925;', 'html':'&lt;&gt;', 'json':'js', 'txt':'tx', 'exe':'&#128190;' }[ext]
-                            || (ext.length === 2 ? ext : '&#128441;');
-                        var fileSize = new System.IO.FileInfo(file).Length;
-                        fileSize = (fileSize + '').replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                        body += '<tr><td>' + icon + '</td><td><a href="' + (pathEndWithSlash ? fileName : '/' + file) + '">' + fileName + '</a></td><td align="right">' + fileSize + '</td></tr>';
-                    }
+                        body += '</p><form method="post" enctype="multipart/form-data"><input type="file" name="files" multiple /><button>Upload</button></form><table>';
+                        dirs = System.IO.Directory.GetDirectories(path);
+                        for (var i in dirs) {
+                            var dir = dirs[i];
+                            var lastPath = dir.split('/').pop();
+                            body += '<tr><td>&#x1f4c2;</td><td><a href="' + (pathEndWithSlash ? lastPath : '/' + dir) + '/">' + lastPath + '</a></td></tr>';
+                        }
+                        var files = System.IO.Directory.GetFiles(path);
+                        for (var i in files) {
+                            var file = files[i];
+                            var fileName = file.split('/').pop();
+                            var ext = fileName.split('.').pop();
+                            var icon = { 'jpg':'&#128247;', 'png':'&#128247;', 'gif':'&#128247;', 'mp4':'&#127909;', 'mkv':'&#127909;',
+                                'mp3':'&#127925;', 'html':'&lt;&gt;', 'json':'js', 'txt':'tx', 'exe':'&#128190;' }[ext]
+                                || (ext.length === 2 ? ext : '&#128441;');
+                            var fileSize = new System.IO.FileInfo(file).Length;
+                            fileSize = (fileSize + '').replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                            body += '<tr><td>' + icon + '</td><td><a href="' + (pathEndWithSlash ? fileName : '/' + file) + '">' + fileName + '</a></td><td align="right">' + fileSize + '</td></tr>';
+                        }
                     
-                    body += '</table></body></html>';
+                        body += '</table></body></html>';
     
-                    responseBody = body;
-                    contentType = 'text/html; charset=utf-8';
+                        responseBody = body;
+                        contentType = 'text/html; charset=utf-8';
+                    }
                 }
             
                 if (responseBody != null || responseFile != null) {
