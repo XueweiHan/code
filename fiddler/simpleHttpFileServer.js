@@ -1,12 +1,11 @@
     static function OnBeforeRequest(oSession: Session) {
 
         // simple http file server
-        if (oSession.RequestMethod == 'GET' &&
-            (oSession.HostnameIs(System.Environment.MachineName) || oSession.HostnameIs('localhost') || oSession.HostnameIs('f.cn'))) {
+        if (oSession.HostnameIs(System.Environment.MachineName) || oSession.HostnameIs('localhost') || oSession.HostnameIs('f.cn')) {
             try {
                 var path = decodeURIComponent(oSession.PathAndQuery).substring(1);//.Insert(1, ":");
                 oSession.oRequest['x-filepath'] = path;
-    
+
                 var responseBody = null;
                 var responseFile = null;
                 var contentType = null;
@@ -18,6 +17,20 @@
                     contentType = { 'cmd': 'text/plain' }[fileExt];
     
                 } else if (System.IO.Directory.Exists(path)) {
+                    if (oSession.RequestMethod == 'POST') {
+                        var type = oSession.oRequest['Content-Type'];
+                        var m = type && type.match(/boundary=(.*)\$/);
+                        var boundary = m && m[1];
+                        if (boundary) {
+                            boundary = '--' + boundary;
+                            oSession.utilDecodeRequest();
+                            var body = oSession.RequestBody;
+                            
+                        }
+                        
+                        oSession.oRequest['x-hello'] = boundary;
+                    }
+                    
                     var body = '<html><body><style>*{font-family:monospace;font-size:16px}p a{margin:0}</style><p>';
                     var pathEndWithSlash = path.EndsWith('/');
                     var dirs = path.split('/');
@@ -29,7 +42,7 @@
                             body += '<a href="/' + path + '">' + dir + '\\</a>';
                         }
                     }
-                    body += '</p><table>';
+                    body += '</p><form method="post" enctype="multipart/form-data"><input type="file" name="files" multiple /><button>Upload</button></form><table>';
                     dirs = System.IO.Directory.GetDirectories(path);
                     for (var i in dirs) {
                         var dir = dirs[i];
