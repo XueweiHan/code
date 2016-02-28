@@ -65,7 +65,7 @@
 
                         oSession.utilCreateResponseAndBypassServer();
                         oSession.responseCode = 303;
-                        oSession.oResponse['Location'] = oSession.fullUrl;
+                        oSession.oResponse['Location'] = '/' + path;
                     } else {
                         var body = '<html><body><style>*{font-family:monospace;font-size:16px}p a{margin:0}</style><p>';
                         var pathEndWithSlash = path.EndsWith('/');
