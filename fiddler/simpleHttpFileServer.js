@@ -7,20 +7,30 @@
             try {
                 var path = decodeURIComponent(oSession.PathAndQuery).substring(1);//.Insert(1, ":");
                 oSession.oRequest['x-filepath'] = path;
+                var found = true;
 
-                var responseBody = null;
-                var responseFile = null;
-                var contentType = null;
                 if (System.IO.File.Exists(path)) {
                     
-                    responseFile = path;
-                    
                     var fileExt = path.split('.').pop();
-                    contentType = { 'cmd': 'text/plain' }[fileExt];
-    
+                    var contentType = { 'cmd': 'text/plain', 'log': 'text/plain' }[fileExt];
+
+                    oSession.utilCreateResponseAndBypassServer();
+                    oSession.LoadResponseFromFile(path);
+                    if (contentType) {
+                        oSession.oResponse['Content-Type'] = contentType;
+                    }
+                    contentType = oSession.oResponse['Content-Type'];
+                    if (contentType.StartsWith('text') || contentType.StartsWith('application/json')) {
+                        oSession.utilGZIPResponse();
+                        oSession.oResponse['Content-Encoding'] = 'gzip';
+                    }
                 } else if (System.IO.Directory.Exists(path)) {
-                    if (oSession.RequestMethod === 'POST') {
-                        var binaryMatch = function(s, p, i) {
+                    if (!path.EndsWith('/')) {
+                        oSession.utilCreateResponseAndBypassServer();
+                        oSession.responseCode = 307;
+                        oSession.oResponse['Location'] = '/' + path + '/';
+                    } else if (oSession.RequestMethod === 'POST') {
+                        var bytesMatch = function(s: Byte[], p: Byte[], i: int) {
                                 var sLen = s.Length;
                                 var pLen = p.Length;
                                 var i = i || 0;
@@ -41,12 +51,13 @@
                         var m = type && type.match(/boundary=(.*)$/);
                         var boundary = m && m[1];
                         if (boundary) {
-                            boundary = '\r\n--' + boundary;
+                            var boundaryBytes = System.Text.Encoding.ASCII.GetBytes('\r\n--' + boundary);
+                            var newLineBytes = System.Text.Encoding.ASCII.GetBytes('\r\n\r\n');
                             oSession.utilDecodeRequest();
                             var body = oSession.RequestBody;
                             var index = 0;
                             while (index >= 0) {
-                                var headEnd = binaryMatch(body, '\r\n\r\n', index);
+                                var headEnd = bytesMatch(body, newLineBytes, index);
                                 if (headEnd < 0) break; else headEnd += 4;
                                 var head = System.Text.Encoding.UTF8.GetString(body, index, headEnd - index);
                                 var fileName = System.IO.Path.Combine(path, head.match(/filename="(.*?)"/)[1]);
@@ -56,7 +67,7 @@
                                 for (var i = 1; System.IO.File.Exists(fileName); ++i) {
                                     fileName = System.IO.Path.Combine(path, name + ' (' + i + ')' + ext);
                                 }
-                                index = binaryMatch(body, boundary, headEnd);
+                                index = bytesMatch(body, boundaryBytes, headEnd);
                                 var fileStream = new System.IO.FileStream(fileName, System.IO.FileMode.CreateNew);
                                 fileStream.Write(body, headEnd, index - headEnd);
                                 fileStream.Close();
@@ -65,10 +76,9 @@
 
                         oSession.utilCreateResponseAndBypassServer();
                         oSession.responseCode = 303;
-                        oSession.oResponse['Location'] = '/' + path;
+                        oSession.oResponse['Location'] = '.';
                     } else {
-                        var body = '<html><body><style>*{font-family:monospace;font-size:16px}p a{margin:0}</style><p>';
-                        var pathEndWithSlash = path.EndsWith('/');
+                        var body = '<html><body><style>*{font-family:monospace;font-size:16px}a{display:inline-block}label{cursor:pointer;color:#fff;background:#48b;padding:0 10px;margin:0 30px}label:hover{background:#3bf}</style>';
                         var dirs = path.split('/');
                         path = '';
                         for (var i in dirs) {
@@ -78,12 +88,15 @@
                                 body += '<a href="/' + path + '">' + dir + '\\</a>';
                             }
                         }
-                        body += '</p><form method="post" enctype="multipart/form-data"><input type="file" name="files" multiple /><button>Upload</button></form><table>';
+                        body += '<form method="post" enctype="multipart/form-data" style="display:inline-block">'
+                            + '<label for="files" class="btn">Upload Files ....</label>'
+                            + '<input style="visibility:hidden;position:absolute;" id="files" type="file" name="_" multiple onchange="form.submit();"/>'
+                            + '</form><table>';
                         dirs = System.IO.Directory.GetDirectories(path);
                         for (var i in dirs) {
                             var dir = dirs[i];
                             var lastPath = dir.split('/').pop();
-                            body += '<tr><td>&#x1f4c2;</td><td><a href="' + (pathEndWithSlash ? lastPath : '/' + dir) + '/">' + lastPath + '</a></td></tr>';
+                            body += '<tr><td>&#x1f4c2;</td><td><a href="' + lastPath + '/">' + lastPath + '</a></td></tr>';
                         }
                         var files = System.IO.Directory.GetFiles(path);
                         for (var i in files) {
@@ -95,34 +108,26 @@
                                 || (ext.length === 2 ? ext : '&#128441;');
                             var fileSize = new System.IO.FileInfo(file).Length;
                             fileSize = (fileSize + '').replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                            body += '<tr><td>' + icon + '</td><td><a href="' + (pathEndWithSlash ? fileName : '/' + file) + '">' + fileName + '</a></td><td align="right">' + fileSize + '</td></tr>';
+                            body += '<tr><td>' + icon + '</td><td><a href="' + fileName + '">' + fileName + '</a></td><td align="right">' + fileSize + '</td></tr>';
                         }
                     
                         body += '</table></body></html>';
     
-                        responseBody = body;
-                        contentType = 'text/html; charset=utf-8';
+                        oSession.utilCreateResponseAndBypassServer();
+                        oSession.utilSetResponseBody(body);
+                        oSession.oResponse['Content-Type'] = 'text/html; charset=utf-8';
+                        oSession.utilGZIPResponse();
+                        oSession.oResponse['Content-Encoding'] = 'gzip';
                     }
+                } else {
+                    found = false;
                 }
-            
-                if (responseBody != null || responseFile != null) {
-                    oSession.utilCreateResponseAndBypassServer();
-                    if (responseBody != null) {
-                        oSession.utilSetResponseBody(responseBody);
-                    } else {
-                        oSession.LoadResponseFromFile(responseFile);
-                    }
-                    if (contentType) {
-                        oSession.oResponse['Content-Type'] = contentType;
-                    }
-                    oSession.utilGZIPResponse();
-                    oSession.oResponse['Content-Encoding'] = 'gzip';
-        
-                    oSession['ui-backcolor'] = 'tan';
-                }
+                
+                found && (oSession['ui-backcolor'] = 'tan');
             } catch (e) {
                 oSession.oRequest['x-error'] = e;
                 oSession['ui-backcolor'] = 'gold';
+                
                 oSession.utilCreateResponseAndBypassServer();
                 oSession.utilSetResponseBody(e);
             }
