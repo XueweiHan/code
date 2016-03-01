@@ -1,5 +1,5 @@
-    static function OnBeforeRequest(oSession: Session) {
-
+    //static function OnBeforeRequest(oSession: Session)
+    static function SimpleHttpFileServier(oSession: Session) {
         oSession.oRequest['x-pid'] = oSession.LocalProcess;
 
         // simple http file server
@@ -44,30 +44,35 @@
                                         j = 0;
                                     }
                                 }
-                                return j === pLen ? i - j : -1;
+                                return j === pLen ? i - j : null;
                             };
                             
                         var type = oSession.oRequest['Content-Type'];
                         var m = type && type.match(/boundary=(.*)$/);
                         var boundary = m && m[1];
                         if (boundary) {
-                            var boundaryBytes = System.Text.Encoding.ASCII.GetBytes('\r\n--' + boundary);
+                            var cookies = '; ' + oSession.oRequest['Cookie'] + '; ';
+                            var sizes = cookies.match(/; uploadFileSizes=([\d,]*?); /)[1].split(',');
                             var newLineBytes = System.Text.Encoding.ASCII.GetBytes('\r\n\r\n');
+                            boundary = '\r\n--' + boundary;
+                            
                             oSession.utilDecodeRequest();
                             var body = oSession.RequestBody;
+                            
                             var index = 0;
-                            while (index >= 0) {
-                                var headEnd = bytesMatch(body, newLineBytes, index);
-                                if (headEnd < 0) break; else headEnd += 4;
+                            for (var i in sizes) {
+                                var headEnd = bytesMatch(body, newLineBytes, index) + 4;
                                 var head = System.Text.Encoding.UTF8.GetString(body, index, headEnd - index);
                                 var fileName = System.IO.Path.Combine(path, head.match(/filename="(.*?)"/)[1]);
                                 if (fileName === path) break;
                                 var name = System.IO.Path.GetFileNameWithoutExtension(fileName);
                                 var ext = System.IO.Path.GetExtension(fileName);
-                                for (var i = 1; System.IO.File.Exists(fileName); ++i) {
-                                    fileName = System.IO.Path.Combine(path, name + ' (' + i + ')' + ext);
+                                for (var x = 1; System.IO.File.Exists(fileName); ++x) {
+                                    fileName = System.IO.Path.Combine(path, name + ' (' + x + ')' + ext);
                                 }
-                                index = bytesMatch(body, boundaryBytes, headEnd);
+                                
+                                index = headEnd + parseInt(sizes[i]);
+                                if (System.Text.Encoding.ASCII.GetString(body, index, boundary.length) !== boundary) break;
                                 var fileStream = new System.IO.FileStream(fileName, System.IO.FileMode.CreateNew);
                                 fileStream.Write(body, headEnd, index - headEnd);
                                 fileStream.Close();
@@ -78,7 +83,23 @@
                         oSession.responseCode = 303;
                         oSession.oResponse['Location'] = '.';
                     } else {
-                        var body = '<html><body><style>*{font-family:monospace;font-size:16px}a{display:inline-block}label{cursor:pointer;color:#fff;background:#48b;padding:0 10px;margin:0 30px}label:hover{background:#3bf}</style>';
+                        var body = '<html><body>'
+                            + '<style>'
+                            +   '*{font-family:monospace;font-size:16px}'
+                            +   'a{display:inline-block}'
+                            +   'label{cursor:pointer;color:#fff;background:#48b;padding:0 10px;margin:0 30px}'
+                            +   'label:hover{background:#3bf}'
+                            + '</style>'
+                            + '<script type="text/javascript">'
+                            +   'function onFileChanged(e){'
+                            +     'var i,files=e.target.files,sizes=[];'
+                            +     'for(i=0;i<files.length;++i){'
+                            +       'sizes.push(files[i].size);'
+                            +     '}'
+                            +     'document.cookie="uploadFileSizes="+sizes.join(",");'
+                            +     'e.target.form.submit();'
+                            +   '}'
+                            + '</script>';
                         var dirs = path.split('/');
                         path = '';
                         for (var i in dirs) {
@@ -89,14 +110,14 @@
                             }
                         }
                         body += '<form method="post" enctype="multipart/form-data" style="display:inline-block">'
-                            + '<label for="files" class="btn">Upload Files ....</label>'
-                            + '<input style="visibility:hidden;position:absolute;" id="files" type="file" name="_" multiple onchange="form.submit();"/>'
+                            + '<label for="files" class="btn">Upload Files ...</label>'
+                            + '<input style="visibility:hidden;position:absolute;" id="files" type="file" name="_" multiple onchange="onFileChanged(event)"/>'
                             + '</form><table>';
                         dirs = System.IO.Directory.GetDirectories(path);
                         for (var i in dirs) {
                             var dir = dirs[i];
                             var lastPath = dir.split('/').pop();
-                            body += '<tr><td>&#x1f4c2;</td><td><a href="' + lastPath + '/">' + lastPath + '</a></td></tr>';
+                            body += '<tr><td>&#x1f4c2;</td><td><a oncontextmenu="this.setAttribute(\'contenteditable\',true);return false;" href="' + lastPath + '/">' + lastPath + '</a></td></tr>';
                         }
                         var files = System.IO.Directory.GetFiles(path);
                         for (var i in files) {
@@ -108,7 +129,7 @@
                                 || (ext.length === 2 ? ext : '&#128441;');
                             var fileSize = new System.IO.FileInfo(file).Length;
                             fileSize = (fileSize + '').replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                            body += '<tr><td>' + icon + '</td><td><a href="' + fileName + '">' + fileName + '</a></td><td align="right">' + fileSize + '</td></tr>';
+                            body += '<tr><td>' + icon + '</td><td><a oncontextmenu="this.setAttribute(\'contenteditable\',true);return false;" href="' + fileName + '">' + fileName + '</a></td><td align="right">' + fileSize + '</td></tr>';
                         }
                     
                         body += '</table></body></html>';
@@ -132,3 +153,4 @@
                 oSession.utilSetResponseBody(e);
             }
         }
+    }
