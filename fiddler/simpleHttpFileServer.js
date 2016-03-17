@@ -22,7 +22,7 @@
                         oSession['ui-backcolor'] = 'tan';
 
                         var fileExt = path.split('.').pop();
-                        var contentType = { 'cmd': 'text/plain', 'log': 'text/plain' }[fileExt];
+                        var contentType = { 'cmd': 'text/plain', 'log': 'text/plain', 'ini': 'text/plain' }[fileExt];
 
                         oSession.utilCreateResponseAndBypassServer();
                         oSession.LoadResponseFromFile(path);
@@ -108,10 +108,11 @@
                             oSession.responseCode = 303;
                             oSession.oResponse['Location'] = '.';
                         } else {
-                            var body = '<html><head><meta name="viewport" content="width=device-width">'
+                            var body = '<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width">'
                                 + '<style>'
                                 +   '*{font-family:monospace;font-size:16px}'
-                                +   'a{display:inline-block}'
+                                +   'a{display:inline-block;text-decoration:none}'
+                                +   'a:hover{text-decoration:underline}'
                                 +   'label{cursor:pointer;color:#fff;background:#48b;padding:0 10px;margin:0 30px}'
                                 +   'label:hover{background:#3bf}'
                                 + '</style>'
