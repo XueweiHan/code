@@ -36,16 +36,105 @@ namespace SrtUtility
                     Console.WriteLine("Success");
                     return;
                 }
+                else if (args.Length == 5 && args[0] == "-sm")
+                {
+                    Console.WriteLine("Reading file: {0}", args[1]);
+                    var a = ParseSrtFile(args[1]);
+                    Console.WriteLine("Reading file: {0}", args[2]);
+                    var b = ParseSrtFile(args[2]);
+
+                    Console.WriteLine("Testing....");
+                    if (args[3] == "0")
+                    {
+                        var x = Test(a, b);
+                        Console.WriteLine("Move file: {0} for Time delta: {1:0.000}", args[2], x);
+                        b = MoveTime(b, TimeSpan.FromSeconds(x));
+                    }
+                    else
+                    {
+                        var x = Test(b, a);
+                        Console.WriteLine("Move file: {0} for Time delta: {1:0.000}", args[1], x);
+                        a = MoveTime(a, TimeSpan.FromSeconds(x));
+                    }
+
+                    Console.WriteLine("Merging to  : {0}", args[4]);
+                    var c = Merge(a, b);
+                    SaveSrtFile(c, args[4]);
+                    Console.WriteLine("Success");
+                    return;
+                }
+                else if (args.Length == 5 && args[0] == "-t")
+                {
+                    string line = string.Format("{0} --> {1}", args[2], args[3]);
+                    var times = TryParseTime(line);
+                    if (times != null)
+                    {
+                        Console.WriteLine("Reading file: {0}", args[1]);
+                        var a = ParseSrtFile(args[1]);
+
+                        var c = MoveTime(a, times.Item2 - times.Item1);
+
+                        Console.WriteLine("Writing file: {0}", args[4]);
+                        SaveSrtFile(c, args[4]);
+                        Console.WriteLine("Success");
+                        return;
+                    }
+                }
+                else if (args.Length == 3 && args[0] == "-test")
+                {
+                    Console.WriteLine("Reading file: {0}", args[1]);
+                    var a = ParseSrtFile(args[1]);
+                    Console.WriteLine("Reading file: {0}", args[2]);
+                    var b = ParseSrtFile(args[2]);
+
+                    Console.WriteLine("Testing....");
+                    var x = Test(a, b);
+                    Console.WriteLine("Best time span: {0:0.000}", x);
+                    return;
+                }
             }
             catch (Exception e)
             {
                 Console.Error.WriteLine(e.ToString());
             }
 
-            Console.WriteLine("merge: SrtUtility -m <input1> <input2> <output>");
+            Console.WriteLine("merge       : SrtUtility -m <input1> <input2> <output>");
+            Console.WriteLine("smart merge : SrtUtility -sm <input1> <input2> <0 or 1> <output>");
+            Console.WriteLine("time align  : SrtUtility -t <input> <hh:mm:ss,fff> <hh:mm:ss,fff> <output>");
         }
 
-        private static void SaveSrtFile(List<Item> items, string filePath)
+        static double Test(List<Item> a, List<Item> b)
+        {
+            var minCount = a.Count + b.Count;
+            var minTimeSpan = .0;
+            for (double i = -10; i <= 10; i += 0.05)
+            {
+                var c = Merge(a, MoveTime(b, TimeSpan.FromSeconds(i)));
+                if (c.Count < minCount)
+                {
+                    minCount = c.Count;
+                    minTimeSpan = i;
+                }
+                else if (c.Count == minCount && Math.Abs(i) < Math.Abs(minTimeSpan))
+                {
+                    minTimeSpan = i;
+                }
+            }
+            return minTimeSpan;
+        }
+
+        static List<Item> MoveTime(List<Item> a, TimeSpan time)
+        {
+            var b = Clone(a);
+            foreach (var item in b)
+            {
+                item.BeginTime += time;
+                item.EndTime += time;
+            }
+            return b;
+        }
+
+        static void SaveSrtFile(List<Item> items, string filePath)
         {
             using (StreamWriter sw = new StreamWriter(filePath, false, Encoding.UTF8))
                 for (var i = 0; i < items.Count; ++i)
@@ -58,8 +147,25 @@ namespace SrtUtility
                 }
         }
 
+        static List<Item> Clone(List<Item> a)
+        {
+            var b = new List<Item>();
+            foreach (var item in a)
+            {
+                b.Add(new Item()
+                {
+                    BeginTime = item.BeginTime,
+                    EndTime = item.EndTime,
+                    Content = item.Content,
+                });
+            }
+            return b;
+        }
+
         static List<Item> Merge(List<Item> a, List<Item> b)
         {
+            a = Clone(a);
+            b = Clone(b);
             int indexa = 0;
             int indexb = 0;
             List<Item> c = new List<Item>();
