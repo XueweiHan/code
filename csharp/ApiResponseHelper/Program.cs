@@ -118,21 +118,21 @@ class Program
     private void GenerateMethod(string methodName, Type inputType, Type outputType, IEnumerable<string> jsonPaths, string configKey)
     {
         var pathRoot = new PathItem() { PropertyTypeFullName = inputType.FullName };
-        var result = new Stack<PropertyInfo>();
+        var result = new Stack<PathItem>();
 
         foreach (var path in jsonPaths)
         {
             var pathArray = path.Trim().Split('.');
 
             // DFS to find the C# property path from the json path.
-            int pathCount = Search(inputType, pathArray, 0, result, pathRoot);
+            int pathCount = Search(inputType, pathArray, 0, result, pathRoot, configKey);
             if (pathCount == 0)
             {
-                WriteLine("#error Json Path is wrong: {0} in config key: {1}", path, configKey);
+                WriteLine("#error Json path is wrong: {0} in config key: {1}", path, configKey);
             }
             else if (pathCount > 1)
             {
-                WriteLine("// There are more than one C# path found in the API schema sharing the same json path: {0} in conifg key: {1}", path, configKey);
+                WriteLine("// #warning There are more than one C# path found in the API schema sharing the same json path: {0} in conifg key: {1}", path, configKey);
             }
         }
 
@@ -288,72 +288,52 @@ class Program
         }
     }
 
-    private void MergePath(Stack<PropertyInfo> result, string[] path, PathItem pathRoot)
+    private void MergePath(Stack<PathItem> result, string[] path, PathItem pathRoot, string configKey)
     {
         var current = pathRoot;
-        PropertyInfo lastPropety = null;
-        string key = null;
 
-        foreach (var property in result.Reverse())
+        foreach (var item in result.Reverse())
         {
+            var key = item.PropertyName + '+' + item.PropertyTypeFullName;
+
             PathItem next;
-
-            if (lastPropety != null)
-            {
-                var lastPropertyType = lastPropety.PropertyType.IsGenericType ? lastPropety.PropertyType.GetGenericArguments()[0] : lastPropety.PropertyType;
-                if (lastPropertyType != property.DeclaringType && !property.DeclaringType.IsAssignableFrom(lastPropertyType))
-                {
-                    key = lastPropety.Name + "++" + property.DeclaringType.FullName;
-                    if (!current.NextItems.TryGetValue(key, out next))
-                    {
-                        next = new PathItem() { PropertyTypeFullName = property.DeclaringType.FullName };
-                        current.NextItems.Add(key, next);
-                    }
-
-                    current = next;
-                }
-            }
-
-            var propertyTypeName = property.PropertyType.IsGenericType ? property.PropertyType.GetGenericArguments()[0].FullName : property.PropertyType.FullName;
-
-            key = property.DeclaringType.FullName + '+' + property.Name + '+' + propertyTypeName;
             if (!current.NextItems.TryGetValue(key, out next))
             {
-                next = new PathItem() { PropertyName = property.Name, PropertyTypeFullName = propertyTypeName, IsList = property.PropertyType.IsGenericType };
-                current.NextItems.Add(key, next);
+                current.NextItems.Add(key, item);
+                next = item;
             }
 
-            lastPropety = property;
             current = next;
         }
 
-        current.JsonPath = string.Join(".", path);
+        if (current.JsonPath == null)
+        {
+            current.JsonPath = string.Join(".", path);
+        }
+        else
+        {
+            WriteLine("#warning Duplicated json path: {0} in config key: {1}", string.Join(".", path), configKey);
+        }
     }
 
-    private int Search(Type type, string[] path, int level, Stack<PropertyInfo> result, PathItem pathRoot)
+    private int Search(Type type, string[] path, int level, Stack<PathItem> result, PathItem pathRoot, string configKey)
     {
         if (level == path.Length)
         {
-            MergePath(result, path, pathRoot);
+            MergePath(result, path, pathRoot, configKey);
             return 1;
         }
 
         var propertyName = GetPropertyNameAndType(path[level]).Item1;
-
-        if (type.IsGenericType)
-        {
-            // assume api schema bond only contains 1 parameter generic types, such as Nullable<T> and IList<T>, then get the type T.
-            type = type.GetGenericArguments()[0];
-            return Search(type, path, level, result, pathRoot);
-        }
 
         int foundCount = 0;
         // find the property with the same name from all public properties of current type
         var property = GetPublicProperties(type).FirstOrDefault(p => string.Equals(ToCamelCase(p.Name), propertyName, StringComparison.Ordinal));
         if (property != null)
         {
-            result.Push(property);
-            foundCount += Search(property.PropertyType, path, level + 1, result, pathRoot);
+            var propertyUnderlineType = GetPropertyUnderlineType(property.PropertyType);
+            result.Push(new PathItem() { PropertyName = property.Name, PropertyTypeFullName = propertyUnderlineType.FullName, IsList = property.PropertyType.IsGenericType });
+            foundCount += Search(propertyUnderlineType, path, level + 1, result, pathRoot, configKey);
             result.Pop();
         }
 
@@ -371,13 +351,16 @@ class Program
                     if (level > 0)
                     {
                         var typeName = GetPropertyNameAndType(path[level - 1]).Item2;
-                        match |= typeName == null || property.DeclaringType.FullName.EndsWith(typeName, StringComparison.Ordinal);
+                        match |= typeName == null || derived.FullName.EndsWith(typeName, StringComparison.Ordinal);
                     }
 
                     if (match)
                     {
-                        result.Push(property);
-                        foundCount += Search(property.PropertyType, path, level + 1, result, pathRoot);
+                        var propertyUnderlineType = GetPropertyUnderlineType(property.PropertyType);
+                        result.Push(new PathItem() { PropertyTypeFullName = derived.FullName });
+                        result.Push(new PathItem() { PropertyName = property.Name, PropertyTypeFullName = propertyUnderlineType.FullName, IsList = property.PropertyType.IsGenericType });
+                        foundCount += Search(propertyUnderlineType, path, level + 1, result, pathRoot, configKey);
+                        result.Pop();
                         result.Pop();
                     }
                 }
@@ -385,6 +368,12 @@ class Program
         }
 
         return foundCount;
+    }
+
+    private Type GetPropertyUnderlineType(Type propertyType)
+    {
+        // assume api schema bond only contains 1 parameter generic types, such as Nullable<T> and IList<T>, then get the type T.
+        return propertyType.IsGenericType ? propertyType.GetGenericArguments()[0] : propertyType;
     }
 
     static private Tuple<string, string> GetPropertyNameAndType(string propertyName)
