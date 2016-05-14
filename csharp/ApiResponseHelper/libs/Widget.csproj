@@ -1,0 +1,298 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(EnvironmentConfig)" />
+  <PropertyGroup>
+    <ProjectGuid>{7BAAB5B6-4B3D-4B83-9482-791854B74CA4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.Search.Frontend.AnswerServices.Widget</RootNamespace>
+    <AssemblyName>Microsoft.Search.Frontend.AnswerServices.Widget</AssemblyName>
+    <IsNETCore>false</IsNETCore>
+    <TextTransformExe>$(PackagesRoot)\TextTemplateTransformationToolkit.Tools\bin\$(BuildType)\$(BuildArchitecture)\TextTransform.exe</TextTransformExe>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Controllers\Api\V4\InsightsWidgetApiV4Controller.cs" />
+    <Compile Include="Controllers\InsightsWidgetController.cs" />
+    <Compile Include="Controllers\InsightsWidgetAnswerController.cs" />
+    <Compile Include="Controllers\KnowledgeWidgetController.cs" />
+    <Compile Include="EntityActions\Models\Extensions.cs" />
+    <Compile Include="Filters\AccessControlAllowCredentialsAttribute.cs" />
+    <Compile Include="Filters\AccessControlAllowOriginAttribute.cs" />
+    <Compile Include="Filters\BrowserCacheAttribute.cs" />
+    <Compile Include="Filters\SilenceXssWarning.cs" />
+    <Compile Include="Filters\VaryByAttribute.cs" />
+    <Compile Include="Helpers\Constants.cs" />
+    <Compile Include="Helpers\EncumbranceProfileFlags.cs" />
+    <Compile Include="Helpers\HeaderHelper.cs" />
+    <Compile Include="Helpers\InsightsWidgetControllerHelper.cs" />
+    <Compile Include="Helpers\IWidgetViewModelHelper.cs" />
+    <Compile Include="Helpers\AnswerViewModelHelper.cs" />
+    <Compile Include="Helpers\KnowledgeCommonHelper.cs" />
+    <Compile Include="Models\Api\V5\EncumbranceHelper.cs" />
+    <Compile Include="Models\Api\V5\Helpers\LocalAnswerMetadata.cs" />
+    <Compile Include="Models\Api\V5\Helpers\LocalAnswerMetadataFormattedFact.cs" />
+    <Compile Include="Models\Api\V5\Helpers\LocalAnswerMetadataFactItem.cs" />
+    <Compile Include="Models\Api\V5\Helpers\LocalAnswerMetadataDishItem.cs" />
+    <Compile Include="Helpers\JsonpResult.cs" />
+    <Compile Include="Helpers\PageSettingsHelper.cs" />
+    <Compile Include="Helpers\SerpLinkLine.cs" />
+    <Compile Include="Helpers\Utilities.cs" />
+    <Compile Include="Helpers\WidgetViewModelHelper.cs" />
+    <Compile Include="Instrumentation\SnappPostBodyRequestInfoSerializer.cs" />
+    <Compile Include="Instrumentation\PostBodyRequestInfoSerializer.cs" />
+    <Compile Include="Instrumentation\SuppressedAnswersSerializer.cs" />
+    <Compile Include="Models\Api\V4\KnowledgeSearchApiAugmentationBuilder.cs" />
+    <Compile Include="Transformation\Api\V4\SnappSearchApiRequestToFederationSettings.cs" />
+    <Compile Include="Models\Api\V4\ISnappResponseProviderHelper.cs" />
+    <Compile Include="Models\Api\V4\KnowledgeApiConstants.cs" />
+    <Compile Include="Models\Api\V4\SnappResponseProviderHelper.cs" />
+    <Compile Include="Models\Api\V4\ResponseSize.cs" />
+    <Compile Include="Models\Api\V4\SnappSearchApiResponseProvider.cs" />
+    <Compile Include="Models\Api\V4\SnappSearchApiRequest.cs" />
+    <Compile Include="Models\Api\V4\SnappSearchApiRequestModelBinder.cs" />
+    <Compile Include="Transformation\Api\V5\AppLinkActionToApiAction.cs" />
+    <Compile Include="Transformation\ImageUrlToBingImageBase.cs" />
+    <Compile Include="ViewModels\BackButtonState.cs" />
+    <Compile Include="ViewModels\CortanaInlineUpsellViewModel.cs" />
+    <Compile Include="ViewModels\CortanaInlineUpsellViewModelFactory.cs" />
+    <Compile Include="ViewModels\IInsightsWidgetViewModelFactory.cs" />
+    <Compile Include="ViewModels\IInsightsWidgetViewModel.cs" />
+    <Compile Include="ViewModels\SnappWidgetViewModel.cs" />
+    <Compile Include="ViewModels\InsightsWidgetViewModelBase.cs" />
+    <Compile Include="ViewModels\InsightsWidgetViewModelFactory.cs" />
+    <Compile Include="ViewModels\KnowledgeWidgetHeaderViewModel.cs" />
+    <Compile Include="ViewModels\KnowledgeWidgetConfigViewModel.cs" />
+    <Compile Include="ViewModels\InsightsWidgetViewModel.cs" />
+    <Compile Include="ViewModels\InsightsContextualSuggestionsViewModel.cs" />
+    <Compile Include="ViewModels\KnowledgeWidgetViewModel.cs" />
+    <Compile Include="ViewModels\IKnowledgeRankedViewModelProvider.cs" />
+    <Compile Include="ViewModels\IKnowledgeViewModelProviderFactory.cs" />
+    <Compile Include="ViewModels\KnowledgeViewModelProviderFactory.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WidgetStartupTask.cs" />
+    <!-- Keeping V5 Stuff Here -->
+    <Compile Include="Controllers\Api\V5\KnowledgeApiV5Controller.cs" />
+    <Compile Include="Transformation\Api\V5\KnowledgeApiV5RequestToFederationSettings.cs" />
+    <Compile Include="Models\Api\V5\IKnowledgeApiV5ResponseProviderHelper.cs" />
+    <Compile Include="Models\Api\V5\KnowledgeApiConstants.cs" />
+    <Compile Include="Models\Api\V5\KnowledgeSearchApiAugmentationBuilder.cs" />
+    <Compile Include="Models\Api\V5\KnowledgeApiV5ResponseProviderHelper.cs" />
+    <Compile Include="Models\Api\V5\KnowledgeApiV5RankedResponseProvider.cs" />
+    <Content Include="Content\Images\Call.svg" />
+    <Content Include="Content\Images\cnlogo.png" />
+    <Content Include="Content\Images\Directions.svg" />
+    <Content Include="Content\Images\logo.png" />
+    <Content Include="Content\Images\Website.svg" />
+    <Content Include="Content\Styles\SportsSmall.scss" />
+    <Content Include="Content\Styles\AlphaAnswer.scss" />
+    <Content Include="Content\Styles\WeatherSmallCard.scss" />
+    <Content Include="Content\Styles\FinanceSmallCard.scss" />
+    <Content Include="Content\Styles\FlightSmallCard.scss" />
+    <Content Include="Content\Styles\LocalSmallActionButtons.scss" />
+    <Content Include="Content\Styles\News.scss" />
+    <Content Include="Content\Styles\MultimediaVideos.scss" />
+    <Content Include="Content\Styles\NewsHorizontal.scss" />
+    <Content Include="Content\Styles\MultimediaVideosHorizontal.scss" />
+    <Content Include="Content\Styles\EntityVideoSmall.scss" />
+  </ItemGroup>
+  <Choose>
+    <!-- Keep resharper happy -->
+    <When Condition=" '2+2' == '5' ">
+      <ItemGroup>
+        <Compile Include="$(IntermediateOutputPath)\InternalOutput\Resources\LocStrings.Designer.cs" />
+      </ItemGroup>
+    </When>
+  </Choose>
+  <ItemGroup>
+    <None Include="Content\Styles\_variables.scss" />
+    <None Include="Content\Styles\_common.scss" />
+    <None Include="KnowledgeConfig.ini" />
+    <None Include="WidgetViews.ini" />
+    <None Include="Widget.ini" />
+    <ParallaxInterface Include="WidgetConfig.bond" />
+    <Compile Include="WidgetAreaRegistration.cs" />
+    <None Include="WidgetResources.ini" />
+    <None Include="WidgetRoutes.ini" />
+    <None Include="WidgetOwner.ini" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="sources.dep" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Search.Frontend.AnswerServices.Shared.Exports">
+      <HintPath>$(FRONTENDROOT)\Answers\services\Shared\Exports\$(IntermediateOutputPath)\Microsoft.Search.Frontend.AnswerServices.Shared.Exports.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.AnswerServices.Api.Exports">
+      <HintPath>$(FrontendRoot)\Answers\services\Api\Exports\$(IntermediateOutputPath)\Microsoft.Search.Frontend.AnswerServices.Api.Exports.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.CoreUX.Instrumentation">
+      <HintPath>$(FrontendRoot)\Instrumentation\Serialization\$(IntermediateOutputPath)\Microsoft.Search.Frontend.CoreUX.Instrumentation.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.SharedComponents">
+      <HintPath>$(FrontendRoot)\Shared\SharedComponents\$(IntermediateOutputPath)\Microsoft.Search.Frontend.SharedComponents.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.Configuration">
+      <HintPath>$(FrontendRoot)\snr\Snr.Configuration\$(IntermediateOutputPath)\Microsoft.Search.Frontend.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.AnswerServices.Web.Exports">
+      <HintPath>$(FrontendRoot)\Answers\services\Web\Exports\$(IntermediateOutputPath)\Microsoft.Search.Frontend.AnswerServices.Web.Exports.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.AnswerServices.WebResult.Exports">
+      <HintPath>$(FrontendRoot)\Answers\services\WebResult\Exports\$(IntermediateOutputPath)\Microsoft.Search.Frontend.AnswerServices.WebResult.Exports.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.AnswerServices.Entity.Exports">
+      <HintPath>$(FrontendRoot)\Answers\services\Entity\Exports\$(IntermediateOutputPath)\Microsoft.Search.Frontend.AnswerServices.Entity.Exports.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.AnswerServices.Feedback.Exports">
+      <HintPath>$(FrontendRoot)\Answers\services\Feedback\Exports\$(IntermediateOutputPath)\Microsoft.Search.Frontend.AnswerServices.Feedback.Exports.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.Instrumentation">
+      <HintPath>$(FrontendRoot)\Instrumentation\Instrumentation\$(IntermediateOutputPath)\Microsoft.Search.Frontend.Instrumentation.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.ResourceManagement.Configuration">
+      <HintPath>$(FrontendRoot)\ResourceManagement\Configuration\src\$(IntermediateOutputPath)\Microsoft.Search.Frontend.ResourceManagement.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.ResourceManagement.Configuration.ParallaxInterfaces.dll">
+      <HintPath>$(FrontendRoot)\ResourceManagement\Configuration\src\$(IntermediateOutputPath)\Microsoft.Search.Frontend.ResourceManagement.Configuration.ParallaxInterfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.AnswerServices.VisualSystem.Exports">
+      <HintPath>$(FrontendRoot)\Answers\Services\VisualSystem\Exports\$(IntermediateOutputPath)\Microsoft.Search.Frontend.AnswerServices.VisualSystem.Exports.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.AnswerServices.WPC.Exports">
+      <HintPath>$(FrontendRoot)\Answers\Services\WPC\Exports\$(IntermediateOutputPath)\Microsoft.Search.Frontend.AnswerServices.WPC.Exports.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.AnswerServices.Spartan.Exports">
+      <HintPath>$(FrontendRoot)\Answers\Services\Spartan\Exports\$(IntermediateOutputPath)\Microsoft.Search.Frontend.AnswerServices.Spartan.Exports.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.PageComposition">
+      <HintPath>$(FrontendRoot)\Shared\PageComposition\$(IntermediateOutputPath)\Microsoft.Search.Frontend.PageComposition.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="Microsoft.Search.Frontend.AnswerServices.Api.Exports">
+      <HintPath>$(FrontendRoot)\Answers\services\Api\Exports\$(IntermediateOutputPath)\Microsoft.Search.Frontend.AnswerServices.Api.Exports.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.ApiSchemas.Interfaces">
+      <HintPath>$(FrontendRoot)\ApiSchemas\Interfaces\$(IntermediateOutputPath)\Microsoft.Search.Frontend.ApiSchemas.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Search.Frontend.AnswerServices.LanguageGeneration.Exports">
+      <HintPath>$(FrontendRoot)\Answers\services\LanguageGeneration\Exports\$(IntermediateOutputPath)\Microsoft.Search.Frontend.AnswerServices.LanguageGeneration.Exports.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bing.HashUtil">
+      <HintPath>$(PackagesRoot)\Sharedmodules.Hashutil.Library\bin\$(BuildType)\$(BuildArchitecture)\Microsoft.Bing.HashUtil.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="Content\Script\KnowledgeCommon.ts" />
+    <TypeScriptCompile Include="Content\Script\LocalImageMaps.ts" />
+    <TypeScriptCompile Include="Content\Script\SnappAPIConfig.ts" />
+    <TypeScriptCompile Include="Content\Script\SnappSports.ts" />
+    <TypeScriptCompile Include="Content\Script\SnappConfig.ts" />
+    <TypeScriptCompile Include="Content\Script\SnappDisambiguation.ts" />
+    <TypeScriptCompile Include="Content\Script\SnappCommon.ts" />
+    <TypeScriptCompile Include="Content\Script\SnappEdgeConfig.ts" />
+    <TypeScriptCompile Include="Content\Script\SnappExpansion.ts" />
+    <TypeScriptCompile Include="Content\Script\SnappPageOrganization.ts" />
+    <TypeScriptCompile Include="Content\Script\InsightsConfig.ts" />
+    <TypeScriptCompile Include="Content\Script\InsightsHooks.ts" />
+    <TypeScriptCompile Include="Content\Script\Knowledge.ts" />
+    <TypeScriptCompile Include="Content\Script\KnowledgeMobile.ts" />
+    <TypeScriptCompile Include="Content\Script\Header.ts" />
+    <TypeScriptCompile Include="Content\Script\Scroll.ts" />
+    <TypeScriptCompile Include="Content\Script\BackButton.ts" />
+    <TypeScriptCompile Include="Content\Script\SlimScroll.ts" />
+    <TypeScriptCompile Include="Content\Script\Insights.ts" />
+    <TypeScriptCompile Include="Content\Script\InsightsAttribution.ts" />
+    <TypeScriptCompile Include="Content\Script\CortanaUpsell.ts" />
+    <TypeScriptCompile Include="Content\Script\EntitySingleFact.ts" />
+    <TypeScriptCompile Include="Content\Script\UpsellConfig.ts" />
+    <TypeScriptCompile Include="Content\Script\ImageResizeHelper.ts" />
+    <TypeScriptCompile Include="Content\Script\ActionsHelper.ts" />
+    <TypeScriptCompile Include="Content\Script\HorizontalCarouselHelper.ts" />
+    <TypeScriptCompile Include="Content\Script\LocalEntityCarouselVertical.ts" />
+    <TypeScriptCompile Include="Content\Script\LocalEntityCarouselHorizontal.ts" />
+    <TypeScriptCompile Include="Content\Script\EntityCarouselHorizontal.ts" />
+    <TypeScriptCompile Include="Content\Script\LocalChainListingVertical.ts" />
+    <TypeScriptCompile Include="Content\Script\LocalChainListingHorizontal.ts" />
+    <TypeScriptCompile Include="Content\Script\SingleEntityWithLocationInfoCard.ts" />
+    <TypeScriptCompile Include="Content\Script\MultimediaImagesCollage.ts" />
+    <TypeScriptCompile Include="Content\Script\MultimediaImagesHorizontal.ts" />
+    <TypeScriptCompile Include="Content\Script\DisambiguationHorizontal.ts" />
+    <TypeScriptCompile Include="Content\Script\EntityMovieMedium.ts" />
+    <TypeScriptCompile Include="Content\Script\SnappTestScript.ts" />
+    <Content Include="Content\Images\snappAssetOverride.png" />
+    <Content Include="Content\Styles\AskCortanaHeader.scss" />
+    <Content Include="Content\Styles\CortanaUpsell.scss" />
+    <Content Include="Content\Styles\SnappDisambiguationOverrides.scss" />
+    <Content Include="Content\Styles\SnappAPIOverrides.scss" />
+    <Content Include="Content\Styles\SnappAPISmallResponse.scss" />
+    <Content Include="Content\Styles\SnappOverrides.scss" />
+    <Content Include="Content\Styles\InsightsOverridesCommon.scss" />
+    <Content Include="Content\Styles\InsightsOverrides.scss" />
+    <Content Include="Content\Styles\InsightsAttributionCommon.scss" />
+    <Content Include="Content\Styles\InsightsAttributionCnOverrides.scss" />
+    <Content Include="Content\Styles\SnappPlatformOverrides.scss" />
+    <Content Include="Content\Styles\SnappPlatformOverridesIphone.scss" />
+    <Content Include="Content\Styles\SnappAPIPlatformOverrides.scss" />
+    <Content Include="Content\Styles\WidgetMobileOverrides.scss" />
+    <Content Include="Content\Styles\WidgetMobileBase.scss" />
+    <Content Include="Content\Styles\WidgetOverrides.scss" />
+    <Content Include="Content\Styles\SlimScroll.scss" />
+    <Content Include="Content\Styles\WidgetBase.scss" />
+    <Content Include="Content\Styles\LocalChainListing.scss" />
+    <Content Include="Content\Styles\LocalChainListingHorizontal.scss" />
+    <Content Include="Content\Styles\EntityCarousel.scss" />
+    <Content Include="Content\Styles\EntityCarouselVertical.scss" />
+    <Content Include="Content\Styles\EntityCarouselHorizontal.scss" />
+    <Content Include="Content\Styles\LocalEntityCarousel.scss" />
+    <Content Include="Content\Styles\LocalEntityCarouselVertical.scss" />
+    <Content Include="Content\Styles\LocalEntityCarouselHorizontal.scss" />
+    <Content Include="Content\Styles\LocalSingleSmall.scss" />
+    <Content Include="Content\Styles\MultimediaImages.scss" />
+    <Content Include="Content\Styles\MultimediaImagesHorizontal.scss" />
+    <Content Include="Content\Styles\TransparentBackground.scss" />
+    <Content Include="Content\Styles\DisambiguationHorizontal.scss" />
+    <Content Include="Content\Styles\EntitySmall.scss" />
+    <Content Include="Content\Styles\LocalExpandDominant.scss" />
+    <Content Include="Content\Styles\LocalExpandDominantHorizontal.scss" />
+    <Content Include="Content\Styles\DictionarySmall.scss" />
+    <Content Include="Content\Styles\NoAnswerPadding.scss" />
+    <Content Include="Content\Styles\EventList.scss" />
+    <Content Include="Content\Styles\EntitySingleFact.scss" />
+    <Content Include="Content\Styles\TopActions.scss" />
+    <Content Include="Content\Styles\InstanceAnswerSeeMoreLink.scss" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypescriptReference Include="$(FrontendRoot)\answers\services\Shared\Content\Content\Script\Declarations\Shared.d.ts" />
+    <TypescriptReference Include="$(FrontendRoot)\answers\services\Shared\Content\Content\Script\Declarations\TaskScheduler.d.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResXCodeGeneration Include="Resources\LocStrings.resx">
+      <SubType>Designer</SubType>
+    </ResXCodeGeneration>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Models\Api\ApiResponseHelper.tt" />
+    <None Include="Models\Api\V5\KnowledgeApiV5RankedResponseProvider.Partial.tt" />
+    <QCustomInput Include="$(TextTransformExe)">
+      <Visible>False</Visible>
+    </QCustomInput>
+    <Compile Include="$(OutDir)ApiResponseHelper.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ApiResponseHelper.tt</DependentUpon>
+    </Compile>
+    <Compile Include="$(OutDir)KnowledgeApiV5RankedResponseProvider.Partial.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>KnowledgeApiV5RankedResponseProvider.Partial.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(FrontendRoot)\Answers\Build\Targets\Src.targets" />
+  <Import Project="$(PackagesRoot)\Parallax.Library\Parallax.InterfacesGeneration.targets" />
+  <Import Project="$(PackagesRoot)\Newtonsoft.Json.Nuget\exports_net45.props" />
+  <Target Name="GenerateClasses" BeforeTargets="CoreCompile">
+    <Message Text="Generate Helper Classes" Importance="high" />
+    <Exec Command="set IntermediateOutputPath=$(IntermediateOutputPath) &amp; $(TextTransformExe) Models\Api\ApiResponseHelper.tt -out $(OutDir)ApiResponseHelper.cs" />
+    <Exec Command="set IntermediateOutputPath=$(IntermediateOutputPath) &amp; $(TextTransformExe) Models\Api\V5\KnowledgeApiV5RankedResponseProvider.Partial.tt -out $(OutDir)KnowledgeApiV5RankedResponseProvider.Partial.cs" />
+  </Target>
+</Project>
